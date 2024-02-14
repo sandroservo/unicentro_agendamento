@@ -1,8 +1,7 @@
-import { Button } from "@/app/_components/ui/button";
 import { db } from "@/app/_lib/primas";
-import { ChevronLeftIcon, MenuIcon, Ratio } from "lucide-react";
-import Image from "next/image";
-import LabsInfo from "../_components/labs-info";
+import LabsInfo from "./_components/labs-info";
+import ServiceItem from "./_components/services.items";
+
 
 interface LabsDatailPageProps {
     params: {
@@ -19,6 +18,9 @@ const LabsDatailPage = async ({ params }: LabsDatailPageProps) => {
     const laboratory = await db.laboratory.findUnique({
         where: {
             id: params.id,
+        },
+        include :{
+            services:true
         }
     });
 
@@ -28,7 +30,16 @@ const LabsDatailPage = async ({ params }: LabsDatailPageProps) => {
     }
 
     return (
-        <LabsInfo laboratory={laboratory}  />
+        <div >
+            <LabsInfo laboratory={laboratory} />
+
+            <div className="px-5 flex flex-col gap-4 py-6">
+                {laboratory.services.map((service) => (
+                <ServiceItem key={service.id} service={service} />
+            ))}
+            </div>
+            
+        </div>
     )
 }
 
