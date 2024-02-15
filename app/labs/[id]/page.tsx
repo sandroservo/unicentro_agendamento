@@ -1,6 +1,8 @@
 import { db } from "@/app/_lib/primas";
 import LabsInfo from "./_components/labs-info";
 import ServiceItem from "./_components/services.items";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 
 interface LabsDatailPageProps {
@@ -9,7 +11,7 @@ interface LabsDatailPageProps {
     }
 }
 const LabsDatailPage = async ({ params }: LabsDatailPageProps) => {
-
+    const session = await getServerSession(authOptions);
     if (!params.id) {
         // TODO: redirecionar pra home page
         return null;

@@ -17,7 +17,7 @@ const LabsInfo = ({ laboratory }: LaboratoryInfoProps) => {
     const router = useRouter()
 
     function handleBackClick() {
-        router.back()
+        router.replace("/")
     }
 
     return (
