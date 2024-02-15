@@ -1,6 +1,8 @@
 "use client"
 
+import SidesMenu from "@/app/_components/sides-menu";
 import { Button } from "@/app/_components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/app/_components/ui/sheet";
 import { Laboratory } from "@prisma/client";
 import { ChevronLeftIcon, MenuIcon, Ratio } from "lucide-react";
 import Image from "next/image";
@@ -10,7 +12,7 @@ interface LaboratoryInfoProps {
     laboratory: Laboratory
 }
 
-const LabsInfo = ({ laboratory}: LaboratoryInfoProps) => {
+const LabsInfo = ({ laboratory }: LaboratoryInfoProps) => {
 
     const router = useRouter()
 
@@ -25,9 +27,23 @@ const LabsInfo = ({ laboratory}: LaboratoryInfoProps) => {
                     <ChevronLeftIcon />
                 </Button>
 
-                <Button size="icon" variant="outline" className="z-50 absolute top-4 right-4">
+                {/* <Button size="icon" variant="outline" className="z-50 absolute top-4 right-4">
                     <MenuIcon />
-                </Button>
+                </Button> */}
+
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button size="icon" variant="outline" className="z-50 absolute top-4 right-4">
+                            <MenuIcon />
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent className="p-0">
+                        <SidesMenu />
+                    </SheetContent>
+                </Sheet>
+
+
+
                 <Image
                     src={laboratory.imageUrl}
                     fill
