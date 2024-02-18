@@ -37,7 +37,7 @@ const LabsDatailPage = async ({ params }: LabsDatailPageProps) => {
 
             <div className="px-5 flex flex-col gap-4 py-6">
                 {laboratory.services.map((service) => (
-                <ServiceItem key={service.id} service={service} />
+                <ServiceItem key={service.id} laboratory={laboratory} service={service} isAuthenticated={!!session?.user}/>
             ))}
             </div>
             

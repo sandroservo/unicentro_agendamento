@@ -21,6 +21,7 @@ const Header = () => {
                             <MenuIcon size={18} />
                         </Button >
                     </SheetTrigger>
+                    
                     <SheetContent className="p-0">
                         <SidesMenu />
                     </SheetContent>

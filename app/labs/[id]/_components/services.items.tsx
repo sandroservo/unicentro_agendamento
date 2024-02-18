@@ -1,25 +1,79 @@
 "use client"
 import { Button } from "@/app/_components/ui/button";
+import { Calendar } from "@/app/_components/ui/calendar";
 import { Card, CardContent } from "@/app/_components/ui/card";
-import { Service } from "@prisma/client"
-import { signIn } from "next-auth/react";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/app/_components/ui/sheet";
+import { generateDayTimeList } from "@/app/_helpers/hours";
+import { Laboratory, Service } from "@prisma/client"
+import { ptBR } from "date-fns/locale";
+import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
+import { format, setMinutes, setHours } from "date-fns";
+import {  useMemo, useState } from "react";
+import { saveBooking } from "../../_actions/save-bookings";
+import { Loader2 } from "lucide-react";
+
 
 interface ServiceItemProps {
+    laboratory: Laboratory
     service: Service
-    isAuthenticated?: boolean
+    isAuthenticated: boolean
 }
 
-const ServiceItem = ({ service, isAuthenticated }: ServiceItemProps) => {
+const ServiceItem = ({ service, isAuthenticated, laboratory }: ServiceItemProps) => {
+    //const router = useRouter()
+    const {data} = useSession();
+    const [date, setDate] = useState<Date | undefined>(undefined)
+    const [thour, setTHours] = useState<string | undefined>()
+    const [loading, setLoading] = useState(false)
 
-    function handleBookingClick () {
+    function handleDateClick(date: Date | undefined) {
+        setDate(date);
+        setTHours(undefined)
+    }
+
+    function handleHoursClick(time: string) {
+        setTHours(time)
+    }
+
+    const handleBookingClick = () => {
         if (!isAuthenticated) {
-            signIn("google")
+            return signIn("google")
+            
         }
-
         //TODO: Abri  modal de agendamento
     }
-   
+
+    const handleBookingSubmit = async () => {
+        setLoading(true)
+        
+        try {
+            if (!thour || !date || !data?.user) {
+                return
+            }
+
+            const dateHour = Number(thour.split(':')[0])
+            const dateMinutes = Number(thour.split(':')[1])
+
+            const newDate = setMinutes(setHours(date, dateHour), dateMinutes)
+
+            await saveBooking({
+                serviceId: service.id,
+                laboratoryId: laboratory.id,
+                date: newDate,
+                userId: (data.user as any).id,
+            })
+        } catch (error) {
+            console.error(error)
+        }finally {
+            setLoading(false);
+        }
+    }
+
+    const timeList = useMemo(() => {
+        return date ? generateDayTimeList(date) : []
+    }, [date])
+
     return (
         <Card>
             <CardContent className="p-3 w-full">
@@ -40,10 +94,103 @@ const ServiceItem = ({ service, isAuthenticated }: ServiceItemProps) => {
                         <p className="text-sm text-gray-400">{service.description}</p>
 
                         <div className="flex items-center justify-end mt-3 ">
-                            <Button variant="secondary" onClick={handleBookingClick}  >
-                                Agendar
-                            </Button>
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="secondary" onClick={handleBookingClick}  >
+                                        Agendar
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent className="p-0">
+                                    <SheetHeader className="text-left px-5 py-6 border-b border-solid border-secundary">
+                                        <SheetTitle>Fazer Reserva</SheetTitle>
+                                    </SheetHeader>
+
+                                    <div className="py-6">
+                                        <Calendar
+                                            mode="single"
+                                            selected={date}
+                                            onSelect={handleDateClick}
+                                            fromDate={new Date()}
+                                            locale={ptBR}
+                                            styles={{
+                                                head_cell: {
+                                                    width: "100%",
+                                                    textTransform: "capitalize"
+                                                },
+                                                cell: {
+                                                    width: "100%",
+                                                },
+                                                button: {
+                                                    width: "100%",
+                                                },
+                                                nav_button_previous: {
+                                                    width: "fit-content",
+                                                },
+                                                nav_button_next: {
+                                                    width: "32",
+                                                    height: "32p"
+                                                },
+                                                caption: {
+                                                    textTransform: "capitalize"
+                                                }
+                                            }}
+                                        />
+
+                                    </div>
+                                    {date && (
+                                        <div className="flex gap-3 overflow-x-auto py-6 px-5 border-t border-solid border-secundary [&::-webkit-scrollbar]:hidden">
+                                            {timeList.map((time) => (
+                                                <Button
+                                                    onClick={() => handleHoursClick(time)}
+                                                    key={time}
+                                                    variant={thour === time ? "default" : "outline"}
+                                                    className="rounded-full">
+                                                    {time}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <div className="py-6 px-5 border-t border-solid border-secondary">
+                                        <Card>
+                                            <CardContent className="p-3 gap-3 flex flex-col">
+                                                <div className=" flex items-center justify-center">
+                                                    <h2 className="font-bold">{service.name}</h2>
+
+                                                </div>
+                                                {date && (
+                                                    <div className="flex justify-between">
+                                                        <h3 className="text-gray-400 text-sm">Data</h3>
+                                                        <h4 className="text-sm ">{format(date, "dd 'de' MMMM", {
+                                                            locale: ptBR
+                                                        })}</h4>
+                                                    </div>
+                                                )}
+                                                {thour && (
+                                                    <div className="flex justify-between">
+                                                        <h3 className="text-gray-400 text-sm">Horário</h3>
+                                                        <h4 className="text-sm " >{thour}</h4>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex justify-between">
+                                                    <h3 className="text-gray-400 text-sm">Laboratorio</h3>
+                                                    <h4 className="text-sm ">{laboratory.name}</h4>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                    <SheetFooter className="px-5">
+                                        <Button onClick={handleBookingSubmit} disabled={!thour || !date || loading}>
+                                            {loading &&<Loader2 className=" mr-2 h-4 w-4 animate-spin" />}
+                                            Confirma reserva
+                                        </Button>
+                                    </SheetFooter>
+
+                                </SheetContent>
+                            </Sheet>
+
                         </div>
+
                     </div>
 
                 </div>
