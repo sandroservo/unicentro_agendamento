@@ -9,9 +9,11 @@ import { ptBR } from "date-fns/locale";
 import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import { format, setMinutes, setHours } from "date-fns";
-import {  useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { saveBooking } from "../../_actions/save-bookings";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 
 interface ServiceItemProps {
@@ -21,11 +23,12 @@ interface ServiceItemProps {
 }
 
 const ServiceItem = ({ service, isAuthenticated, laboratory }: ServiceItemProps) => {
-    //const router = useRouter()
-    const {data} = useSession();
+    const router = useRouter()
+    const { data } = useSession();
     const [date, setDate] = useState<Date | undefined>(undefined)
     const [thour, setTHours] = useState<string | undefined>()
     const [loading, setLoading] = useState(false)
+    const [sheetIsOpen, setSheetIsOpen] = useState(false)
 
     function handleDateClick(date: Date | undefined) {
         setDate(date);
@@ -39,14 +42,14 @@ const ServiceItem = ({ service, isAuthenticated, laboratory }: ServiceItemProps)
     const handleBookingClick = () => {
         if (!isAuthenticated) {
             return signIn("google")
-            
+
         }
         //TODO: Abri  modal de agendamento
     }
 
     const handleBookingSubmit = async () => {
         setLoading(true)
-        
+
         try {
             if (!thour || !date || !data?.user) {
                 return
@@ -62,10 +65,25 @@ const ServiceItem = ({ service, isAuthenticated, laboratory }: ServiceItemProps)
                 laboratoryId: laboratory.id,
                 date: newDate,
                 userId: (data.user as any).id,
+            });
+            setSheetIsOpen(false)
+
+            ///não deixa data marcada
+            setTHours(undefined)
+            setDate(undefined)
+
+            toast("Agendamento realizado com suscesso", {
+                description: format(newDate,"'Para' dd 'de' MMMM 'às' HH':'mm'.'",{
+                    locale:ptBR
+                }),
+                action: {
+                    label: "Visualizar",
+                    onClick: () => router.push('/bookings')
+                }
             })
         } catch (error) {
             console.error(error)
-        }finally {
+        } finally {
             setLoading(false);
         }
     }
@@ -94,7 +112,7 @@ const ServiceItem = ({ service, isAuthenticated, laboratory }: ServiceItemProps)
                         <p className="text-sm text-gray-400">{service.description}</p>
 
                         <div className="flex items-center justify-end mt-3 ">
-                            <Sheet>
+                            <Sheet open={sheetIsOpen} onOpenChange={setSheetIsOpen}>
                                 <SheetTrigger asChild>
                                     <Button variant="secondary" onClick={handleBookingClick}  >
                                         Agendar
@@ -181,7 +199,7 @@ const ServiceItem = ({ service, isAuthenticated, laboratory }: ServiceItemProps)
                                     </div>
                                     <SheetFooter className="px-5">
                                         <Button onClick={handleBookingSubmit} disabled={!thour || !date || loading}>
-                                            {loading &&<Loader2 className=" mr-2 h-4 w-4 animate-spin" />}
+                                            {loading && <Loader2 className=" mr-2 h-4 w-4 animate-spin" />}
                                             Confirma reserva
                                         </Button>
                                     </SheetFooter>
