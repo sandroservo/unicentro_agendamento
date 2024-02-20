@@ -6,12 +6,47 @@ import Search from "./_components/search";
 import BookingItem from "../_components/booking-item";
 import { db } from "../_lib/primas";
 import LabItems from "./_components/lab-itens";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 
 
 
 export default async function Home() {
+  const session = await getServerSession(authOptions)
 
-  const laboratorys = await db.laboratory.findMany({})
+  const[laboratorys, confirmedBookings] = await Promise.all([
+    db.laboratory.findMany({}),
+    session?.user ? await db.booking.findMany({
+      where:{
+        userId:(session?.user as any).id,
+        date:{
+          gte: new Date()
+        }
+        
+      },
+      include:{
+        service: true,
+        laboratory: true,
+      },
+    }) : Promise.resolve([])
+
+  ])
+
+  //const laboratorys = await db.laboratory.findMany({})
+
+  // const confirmedbookings = session?.user ? await db.booking.findMany({
+  //   where:{
+  //     userId:(session?.user as any).id,
+  //     date:{
+  //       gte: new Date()
+  //     }
+      
+  //   },
+  //   include:{
+  //     service: true,
+  //     laboratory: true,
+  //   },
+  // }) : [];
 
   return (
     <div>
@@ -24,10 +59,15 @@ export default async function Home() {
       </div>
       <div className="p-5 mt-6">
         <Search />
-      {/* </div>
-      <div className="px-5 mt-6">
-        <h2 className="text-xs mb-3 uppercase text-gray-400 font-bold">agendamento</h2>
-        <BookingItem /> */}
+      </div>
+      <div className="mt-6">
+        <h2 className=" pl-5 text-xs mb-3 uppercase text-gray-400 font-bold">agendamento</h2>
+       
+       <div className="pl-5 flex gap-3 overflow-auto [&::-webkit-scrollbar]:hidden">
+       {confirmedBookings.map((booking) => (
+        <BookingItem key={booking.id} booking={booking} />
+        ))}
+       </div>
       </div>
 
       <div className="mt-6">

@@ -16,19 +16,64 @@ const BookingsPage = async () => {
         return redirect("/")
     }
 
-    const bookings = await db.booking.findMany({
-        where: {
-            userId: (session.user as any).id,
+    // const confirmedBookings = await db.booking.findMany({
+    //     where: {
+    //         userId: (session.user as any).id,
+    //         date:{
+    //             gte:new Date()
+    //         }
 
-        },
-        include: {
-            service: true,
-            laboratory: true,
-        }
-    })
+    //     },
+    //     include: {
+    //         service: true,
+    //         laboratory: true,
+    //     },
+    // });
+    // const fineshedBookings = await db.booking.findMany({
+    //     where: {
+    //         userId: (session.user as any).id,
+    //         date:{
+    //             lt:new Date()
+    //         }
 
-    const confirmedBookings = bookings.filter(booking => isFuture(booking.date))
-    const fineshedBookings = bookings.filter(booking => isPast(booking.date))
+    //     },
+    //     include: {
+    //         service: true,
+    //         laboratory: true,
+    //     },
+    // });
+
+    const [confirmedBookings, fineshedBookings] = await Promise.all([
+        db.booking.findMany({
+            where: {
+                userId: (session.user as any).id,
+                date:{
+                    gte:new Date()
+                }
+    
+            },
+            include: {
+                service: true,
+                laboratory: true,
+            },
+        }),
+        db.booking.findMany({
+            where: {
+                userId: (session.user as any).id,
+                date:{
+                    lt:new Date()
+                }
+    
+            },
+            include: {
+                service: true,
+                laboratory: true,
+            },
+        })
+    ])
+
+    //const confirmedBookings = bookings.filter(booking => isFuture(booking.date))
+    //const fineshedBookings = bookings.filter(booking => isPast(booking.date))
 
 
     return (
