@@ -39,12 +39,12 @@ const ServiceItem = ({ service, isAuthenticated, laboratory }: ServiceItemProps)
         }
 
         const refreshAvailableHours = async () => {
-            const _dayBookings = await getDayBookings(date)
+            const _dayBookings = await getDayBookings(laboratory.id, date)
 
             setDayBookings(_dayBookings)
         };
         refreshAvailableHours();
-    }, [date])
+    }, [date, laboratory.id])
 
 
     function handleDateClick(date: Date | undefined) {
@@ -109,9 +109,10 @@ const ServiceItem = ({ service, isAuthenticated, laboratory }: ServiceItemProps)
     const timeList = useMemo(() => {
         //return date ? generateDayTimeList(date) : []
         if (!date) {
-            return []
+            return [];
         }
-        return generateDayTimeList(date).filter(time => {
+
+        return generateDayTimeList(date).filter((time) => {
 
             const timeHours = Number(time.split(':')[0])
             const timeMinutes = Number(time.split(':')[1])

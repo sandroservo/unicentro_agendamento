@@ -24,10 +24,10 @@ export default async function Home() {
       </div>
       <div className="p-5 mt-6">
         <Search />
-      </div>
+      {/* </div>
       <div className="px-5 mt-6">
         <h2 className="text-xs mb-3 uppercase text-gray-400 font-bold">agendamento</h2>
-        <BookingItem />
+        <BookingItem /> */}
       </div>
 
       <div className="mt-6">
