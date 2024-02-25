@@ -7,6 +7,18 @@ import { Card, CardContent } from "./ui/card";
 import { format, isFuture, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "./ui/alert-dialog"
+
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { Loader2 } from "lucide-react";
@@ -27,21 +39,21 @@ interface BookingItemProps {
 
 
 const BookingItem = ({ booking }: BookingItemProps) => {
-const [isDeleteLoading, setIsDeleteLoading] = useState(false)
+    const [isDeleteLoading, setIsDeleteLoading] = useState(false)
 
     const isBookingConfirmed = isFuture(booking.date)
 
     const handleCancelClick = async () => {
         setIsDeleteLoading(true)
 
-       try {
-         await cancelBooking(booking.id)
-         toast.success("Reserva cancelada com  sucesso!")
-       } catch (error) {
-        console.error(error)
-       }finally{
-        setIsDeleteLoading(false)
-       }
+        try {
+            await cancelBooking(booking.id)
+            toast.success("Reserva cancelada com  sucesso!")
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setIsDeleteLoading(false)
+        }
     }
 
     return (
@@ -148,17 +160,36 @@ const [isDeleteLoading, setIsDeleteLoading] = useState(false)
                             </Button >
                         </SheetClose>
 
-                        <Button 
-                        onClick={handleCancelClick} 
-                        disabled={!isBookingConfirmed || isDeleteLoading}
-                        variant="destructive" 
-                        className="w-full"
-                        >
-                            {isDeleteLoading && (
-                                <Loader2 className=" mr-2 h-4 w-4 animate-spin" />
-                            )}
-                            Cancelar reserva
-                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    disabled={!isBookingConfirmed || isDeleteLoading}
+                                    variant="destructive"
+                                    className="w-full"
+                                >
+
+                                    Cancelar reserva
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="w-[90%">
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Deseja mesmo cancelar o agendamento?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Depois de Cancelada, não será posivel reverter essa ação.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter className="flex-row gap-3">
+                                    <AlertDialogCancel className="w-full mt-0">Voltar</AlertDialogCancel>
+                                    <AlertDialogAction disabled={isDeleteLoading} onClick={handleCancelClick} className="w-full">
+                                        {isDeleteLoading && (
+                                            <Loader2 className=" mr-2 h-4 w-4 animate-spin" />
+                                        )}
+                                        Confirmar
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+
                     </SheetFooter>
 
                 </div>

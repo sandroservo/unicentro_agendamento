@@ -1,6 +1,7 @@
 "use server"
 
 import { db } from "@/app/_lib/primas";
+import { revalidatePath } from "next/cache";
 
 interface SaveBookingParams{
     laboratoryId: string;
@@ -20,4 +21,7 @@ export const saveBooking = async (params:SaveBookingParams) => {
         }
 
     })
+
+    revalidatePath("/")
+    revalidatePath("/bookings")
 }
